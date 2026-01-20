@@ -1,0 +1,27 @@
+{
+  "development": {
+    "username": "admin",
+    "password": "adminsecret",
+    "database": "mydatabase",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 3307,
+    "timezone": "+08:00"
+  },
+  "test": {
+    "username": "admin",
+    "password": "adminsecret",
+    "database": "mydatabase",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 3307
+  },
+  "production": {
+    "username": "admin",
+    "password": "adminsecret",
+    "database": "mydatabase",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 3307
+  }
+}
