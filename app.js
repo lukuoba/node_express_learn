@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const logger = require('morgan');
 const adminAuth = require('./middlewares/admin-auth');
 const userAuth = require('./middlewares/user-auth');
@@ -63,4 +64,5 @@ app.use('/search', searchRouter);
 app.use('/auth', authWebRouter);
 app.use('/users', userAuth, usersAuthRouter);
 app.use('/likes', userAuth, likesRouter);
+
 module.exports = app;

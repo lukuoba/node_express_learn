@@ -18,12 +18,12 @@
     "timezone": "+08:00"
   },
   "production": {
-    "username": "admin",
-    "password": "adminsecret",
-    "database": "mydatabase",
+    "username": "root",
+    "password": "3cfbde1f962b9434",
+    "database": "lean_coures_api_production",
     "host": "127.0.0.1",
     "dialect": "mysql",
-    "port": 3307,
+    "port": 3306,
     "timezone": "+08:00"
   }
 }
