@@ -11,7 +11,7 @@
   "test": {
     "username": "admin",
     "password": "adminsecret",
-    "database": "mydatabase",
+    "database": "lean_coures_api_test",
     "host": "127.0.0.1",
     "dialect": "mysql",
     "port": 3307,
