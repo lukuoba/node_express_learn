@@ -17,35 +17,23 @@ async function getCategories(params) {
 /* GET home page. */
 router.get('/', async function (req, res, next) {
   try {
-    const { name } = req.query;
-    const currentPage = Math.abs(Number(req.query.currentPage), 1) || 1;
-    const pageSize = Math.abs(Number(req.query.pageSize), 10) || 10;
-    const offset = (currentPage - 1) * pageSize;
     const condition = {
+      where: {},
       order: [
         ['rank', 'ASC'],
         ['id', 'ASC'],
       ],
-      limit: pageSize,
-      offset,
     };
-    if (name) {
-      condition.where = {
-        name: {
-          [Op.like]: `%${name}%`,
-        },
+    if (query.name) {
+      condition.where.name = {
+        [Op.like]: `%${query.name}%`,
       };
     }
-    const { rows, count } = await Category.findAndCountAll(condition);
+    const { rows } = await Category.findAndCountAll(condition);
     success(
       res,
       {
         categories: rows,
-        pagination: {
-          total: count,
-          currentPage,
-          pageSize,
-        },
       },
       '查询成功',
     );

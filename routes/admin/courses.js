@@ -47,24 +47,39 @@ async function getCourse(req) {
 /* GET home page. */
 router.get('/', async function (req, res, next) {
   try {
-    const { name } = req.query;
     const currentPage = Math.abs(Number(req.query.currentPage), 1) || 1;
     const pageSize = Math.abs(Number(req.query.pageSize), 10) || 10;
     const offset = (currentPage - 1) * pageSize;
     const condition = {
       ...getCondition(),
+      where: {},
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset,
     };
 
-    if (name) {
-      condition.where = {
-        name: {
-          [Op.like]: `%${name}%`,
-        },
+    if (query.categoryId) {
+      condition.where.categoryId = query.categoryId;
+    }
+
+    if (query.userId) {
+      condition.where.userId = query.userId;
+    }
+
+    if (query.name) {
+      condition.where.name = {
+        [Op.like]: `%${query.name}%`,
       };
     }
+
+    if (query.recommended) {
+      condition.where.recommended = query.recommended === 'true';
+    }
+
+    if (query.introductory) {
+      condition.where.introductory = query.introductory === 'true';
+    }
+
     const { rows, count } = await Course.findAndCountAll(condition);
     success(
       res,

@@ -21,41 +21,30 @@ router.get('/', async function (req, res, next) {
     const currentPage = Math.abs(Number(req.query.currentPage), 1) || 1;
     const pageSize = Math.abs(Number(req.query.pageSize), 10) || 10;
     const offset = (currentPage - 1) * pageSize;
+
     const condition = {
+      where: {},
       order: [['id', 'DESC']],
       limit: pageSize,
-      offset,
+      offset: offset,
     };
+
     if (query.email) {
-      condition.where = {
-        email: {
-          [Op.eq]: query.email,
-        },
-      };
+      condition.where.email = query.email;
     }
 
     if (query.username) {
-      condition.where = {
-        username: {
-          [Op.eq]: query.username,
-        },
-      };
+      condition.where.username = query.username;
     }
 
     if (query.nickname) {
-      condition.where = {
-        nickname: {
-          [Op.like]: `%${query.nickname}%`,
-        },
+      condition.where.nickname = {
+        [Op.like]: `%${query.nickname}%`,
       };
     }
 
     if (query.role) {
-      condition.where = {
-        role: {
-          [Op.eq]: query.role,
-        },
-      };
+      condition.where.role = query.role;
     }
 
     const { rows, count } = await User.findAndCountAll(condition);

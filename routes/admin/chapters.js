@@ -37,9 +37,10 @@ router.get('/', async function (req, res, next) {
     const currentPage = Math.abs(Number(req.query.currentPage), 1) || 1;
     const pageSize = Math.abs(Number(req.query.pageSize), 10) || 10;
     const offset = (currentPage - 1) * pageSize;
-    const { title } = req.query;
+
     const condition = {
       ...getCondition(),
+      where: {},
       order: [
         ['rank', 'ASC'],
         ['id', 'ASC'],
@@ -48,11 +49,11 @@ router.get('/', async function (req, res, next) {
       offset: offset,
     };
 
-    if (title) {
-      condition.where = {
-        title: {
-          [Op.like]: `%${title}%`,
-        },
+    condition.where.courseId = query.courseId;
+
+    if (query.title) {
+      condition.where.title = {
+        [Op.like]: `%${query.title}%`,
       };
     }
     const { rows, count } = await Chapter.findAndCountAll(condition);
@@ -91,7 +92,9 @@ router.get('/:id', async function (req, res, next) {
 router.post('/', async function (req, res) {
   try {
     const body = createWhiteList(req);
-    let chapter = await Chapter.create(body);
+    // 创建章节，并增加课程章节数
+    const chapter = await Chapter.create(body);
+    await Course.increment('chaptersCount', { where: { id: chapter.courseId } });
     success(res, { chapter }, '创建成功');
   } catch (error) {
     failure(res, error);
@@ -105,7 +108,7 @@ router.delete('/:id', async function (req, res, next) {
   try {
     let chapter = await getChapter(req.params);
     await chapter.destroy();
-
+    await Course.decrement('chaptersCount', { where: { id: chapter.courseId } });
     success(
       res,
       {

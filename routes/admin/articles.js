@@ -22,17 +22,18 @@ router.get('/', async function (req, res, next) {
     const pageSize = Math.abs(Number(req.query.pageSize), 10) || 10;
     const offset = (currentPage - 1) * pageSize;
     const condition = {
+      where: {},
       order: [['id', 'DESC']],
       limit: pageSize,
-      offset,
+      offset: offset,
     };
-    if (title) {
-      condition.where = {
-        title: {
-          [Op.like]: `%${title}%`,
-        },
+
+    if (query.title) {
+      condition.where.title = {
+        [Op.like]: `%${query.title}%`,
       };
     }
+
     const { rows, count } = await Article.findAndCountAll(condition);
     success(
       res,
