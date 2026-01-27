@@ -17,7 +17,7 @@ async function getArticle(params) {
 /* GET home page. */
 router.get('/', async function (req, res, next) {
   try {
-    const { title } = req.query;
+    // const { title } = req.query;
     const currentPage = Math.abs(Number(req.query.currentPage), 1) || 1;
     const pageSize = Math.abs(Number(req.query.pageSize), 10) || 10;
     const offset = (currentPage - 1) * pageSize;
@@ -27,8 +27,14 @@ router.get('/', async function (req, res, next) {
       limit: pageSize,
       offset: offset,
     };
-
-    if (query.title) {
+    // 查询被软删除的数据
+    if (req.query.deleted === 'true') {
+      condition.paranoid = false;
+      condition.where.deletedAt = {
+        [Op.not]: null,
+      };
+    }
+    if (req.query.title) {
       condition.where.title = {
         [Op.like]: `%${query.title}%`,
       };
@@ -78,24 +84,19 @@ router.post('/', async function (req, res) {
 });
 
 /**
- * delete /admin/articles/:id
+ * 删除到回收站
+ * POST /admin/articles/delete
  */
-router.delete('/:id', async function (req, res, next) {
+router.post('/delete', async function (req, res) {
   try {
-    let article = await getArticle(req.params);
-    await article.destroy();
-
-    success(
-      res,
-      {
-        article,
-      },
-      '删除成功',
-    );
+    const { id } = req.body;
+    await Article.destroy({ where: { id: id } });
+    success(res, '已删除到回收站。');
   } catch (error) {
     failure(res, error);
   }
 });
+
 /**
  * PUT /admin/articles/:id
  */
@@ -112,6 +113,20 @@ router.put('/:id', async function (req, res, next) {
       },
       '更新成功',
     );
+  } catch (error) {
+    failure(res, error);
+  }
+});
+/**
+ * 从回收站恢复
+ * POST /admin/articles/restore
+ */
+router.post('/restore', async function (req, res) {
+  try {
+    const { id } = req.body;
+
+    await Article.restore({ where: { id: id } });
+    success(res, '已恢复成功。');
   } catch (error) {
     failure(res, error);
   }
