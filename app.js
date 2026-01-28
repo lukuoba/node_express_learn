@@ -27,6 +27,8 @@ const searchRouter = require('./routes/search');
 const authWebRouter = require('./routes/auth');
 const usersAuthRouter = require('./routes/users');
 const likesRouter = require('./routes/likes');
+const captchaRouter = require('./routes/captcha');
+const adminLogsRouter = require('./routes/admin/logs');
 
 app.use(cors());
 app.use('/', indexRouter);
@@ -53,6 +55,7 @@ app.use('/admin/users', adminAuth, usersRouter);
 app.use('/admin/courses', adminAuth, coursesRouter);
 app.use('/admin/chapters', adminAuth, chaptersRouter);
 app.use('/admin/charts', adminAuth, adminChartsRouter);
+app.use('/admin/logs', adminAuth, adminLogsRouter);
 app.use('/admin/auth', authRouter);
 app.use('/categories', getCategories);
 app.use('/courses', getCourses);
@@ -63,5 +66,6 @@ app.use('/search', searchRouter);
 app.use('/auth', authWebRouter);
 app.use('/users', userAuth, usersAuthRouter);
 app.use('/likes', userAuth, likesRouter);
+app.use('/captcha', captchaRouter);
 
 module.exports = app;

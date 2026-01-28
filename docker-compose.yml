@@ -22,5 +22,15 @@ services:
     volumes:
       - ./data/redis:/data
 
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq # 持久化数据
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: clwy1234
 volumes:
   mysql-data:

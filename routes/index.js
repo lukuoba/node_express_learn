@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { Course, Category, User } = require('../models');
 const { success, failure } = require('../utils/responses');
-
 const { setKey, getKey } = require('../utils/redis');
 
 /**
@@ -71,5 +70,4 @@ router.get('/', async function (req, res, next) {
     failure(res, error);
   }
 });
-
 module.exports = router;

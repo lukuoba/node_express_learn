@@ -1,13 +1,4 @@
-// /**
-//  * 自定义 404 错误
-//  */
-// class NotFoundError extends Error {
-//   constructor(message) {
-//     super(message);
-//     this.name = 'NotFoundError';
-//     this.status = 404;
-//   }
-// }
+const logger = require('./logger');
 
 /**
  * 请求成功
@@ -72,6 +63,7 @@ function failure(res, error) {
       error: [error.message],
     });
   } else {
+    logger.error('服务器错误：', error);
     return res.status(500).json({
       code: 500,
       status: 'error',
