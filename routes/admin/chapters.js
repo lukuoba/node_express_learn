@@ -4,7 +4,17 @@ const { Chapter, Course, Sequelize } = require('../../models');
 const { Op } = Sequelize;
 const { NotFoundError } = require('../../utils/errors');
 const { success, failure } = require('../../utils/responses');
+const { delKey } = require('../../utils/redis');
 
+/**
+ * 清除缓存
+ * @param chapter
+ * @returns {Promise<void>}
+ */
+async function clearCache(chapter) {
+  await delKey(`chapters:${chapter.courseId}`);
+  await delKey(`chapter:${chapter.id}`);
+}
 /**
  * 公共方法：关联课程数据
  * @returns {{include: [{as: string, model, attributes: string[]}], attributes: {exclude: string[]}}}
@@ -95,6 +105,7 @@ router.post('/', async function (req, res) {
     // 创建章节，并增加课程章节数
     const chapter = await Chapter.create(body);
     await Course.increment('chaptersCount', { where: { id: chapter.courseId } });
+    await clearCache(chapter);
     success(res, { chapter }, '创建成功');
   } catch (error) {
     failure(res, error);
@@ -109,6 +120,7 @@ router.delete('/:id', async function (req, res, next) {
     let chapter = await getChapter(req.params);
     await chapter.destroy();
     await Course.decrement('chaptersCount', { where: { id: chapter.courseId } });
+    await clearCache(chapter);
     success(
       res,
       {
@@ -128,7 +140,7 @@ router.put('/:id', async function (req, res, next) {
     let chapter = await getChapter(req.params);
     const body = createWhiteList(req);
     await chapter.update(body);
-
+    await clearCache(chapter);
     success(
       res,
       {

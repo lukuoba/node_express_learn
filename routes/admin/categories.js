@@ -4,6 +4,20 @@ const { Category, Sequelize } = require('../../models');
 const { Op } = Sequelize;
 const { NotFoundError } = require('../../utils/errors');
 const { success, failure } = require('../../utils/responses');
+const { delKey } = require('../../utils/redis');
+
+/**
+ * 清除缓存
+ * @param category
+ * @returns {Promise<void>}
+ */
+async function clearCache(category = null) {
+  await delKey('categories');
+
+  if (category) {
+    await delKey(`category:${category.id}`);
+  }
+}
 
 async function getCategories(params) {
   const { id } = params;
@@ -61,6 +75,7 @@ router.post('/', async function (req, res) {
   try {
     const body = createWhiteList(req);
     let category = await Category.create(body);
+    await clearCache(category);
     success(res, { category }, '创建成功');
   } catch (error) {
     failure(res, error);
@@ -74,7 +89,7 @@ router.delete('/:id', async function (req, res, next) {
   try {
     let category = await getCategories(req.params);
     await category.destroy();
-
+    await clearCache(category);
     success(
       res,
       {
@@ -94,7 +109,7 @@ router.put('/:id', async function (req, res, next) {
     let category = await getCategories(req.params);
     const body = createWhiteList(req);
     await category.update(body);
-
+    await clearCache(category);
     success(
       res,
       {

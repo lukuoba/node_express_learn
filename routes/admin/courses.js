@@ -4,7 +4,23 @@ const { Course, Sequelize, Category, User, Chapter } = require('../../models');
 const { Op } = Sequelize;
 const { NotFoundError } = require('../../utils/errors');
 const { success, failure } = require('../../utils/responses');
+const { getKeysByPattern, delKey } = require('../../utils/redis');
 
+/**
+ * 清除缓存
+ * @param course
+ * @returns {Promise<void>}
+ */
+async function clearCache(course = null) {
+  let keys = await getKeysByPattern('courses:*');
+  if (keys.length !== 0) {
+    await delKey(keys);
+  }
+
+  if (course) {
+    await delKey(`course:${course.id}`);
+  }
+}
 /**
  * 公共方法：关联分类、用户数据
  * @returns {{include: [{as: string, model, attributes: string[]}], attributes: {exclude: string[]}}}
@@ -117,6 +133,7 @@ router.post('/', async function (req, res) {
   try {
     const body = createWhiteList(req);
     let course = await Course.create(body);
+    await clearCache();
     success(res, { course }, '创建成功');
   } catch (error) {
     failure(res, error);
@@ -133,7 +150,7 @@ router.delete('/:id', async function (req, res, next) {
     if (count > 0) {
       throw new Error('当前课程有章节，无法删除。');
     }
-    await course.destroy();
+    await clearCache(course);
     success(
       res,
       {
@@ -153,6 +170,7 @@ router.put('/:id', async function (req, res, next) {
     let course = await getCourse(req.params);
     const body = createWhiteList(req);
     await course.update(body);
+    await clearCache(course);
 
     success(
       res,

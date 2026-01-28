@@ -4,7 +4,15 @@ const { User, Sequelize } = require('../../models');
 const { Op } = Sequelize;
 const { NotFoundError } = require('../../utils/errors');
 const { success, failure } = require('../../utils/responses');
-
+const { delKey } = require('../../utils/redis');
+/**
+ * 清除缓存
+ * @param user
+ * @returns {Promise<void>}
+ */
+async function clearCache(user) {
+  await delKey(`user:${user.id}`);
+}
 async function getUser(params) {
   const { id } = params;
   let user = await User.findByPk(id);
@@ -117,6 +125,7 @@ router.put('/:id', async function (req, res, next) {
     let user = await getUser(req.params);
     const body = filterBody(req);
     await user.update(body);
+    await clearCache(user);
 
     success(
       res,

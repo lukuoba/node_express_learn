@@ -4,6 +4,27 @@ const { Article, Sequelize } = require('../../models');
 const { Op } = Sequelize;
 const { NotFoundError } = require('../../utils/errors');
 const { success, failure } = require('../../utils/responses');
+const { getKeysByPattern, delKey } = require('../../utils/redis');
+
+/**
+ * 清除缓存
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function clearCache(id = null) {
+  // 清除所有文章列表缓存
+  let keys = await getKeysByPattern('articles:*');
+  if (keys.length !== 0) {
+    await delKey(keys);
+  }
+
+  // 如果传递了id，则通过id清除文章详情缓存
+  if (id) {
+    // 如果是数组，则遍历
+    const keys = Array.isArray(id) ? id.map((item) => `article:${item}`) : `article:${id}`;
+    await delKey(keys);
+  }
+}
 
 async function getArticle(params) {
   const { id } = params;
@@ -77,6 +98,7 @@ router.post('/', async function (req, res) {
   try {
     const body = createWhiteList(req);
     let article = await Article.create(body);
+    await clearCache();
     success(res, { article }, '创建成功');
   } catch (error) {
     failure(res, error);
@@ -91,6 +113,7 @@ router.post('/delete', async function (req, res) {
   try {
     const { id } = req.body;
     await Article.destroy({ where: { id: id } });
+    await clearCache(id);
     success(res, '已删除到回收站。');
   } catch (error) {
     failure(res, error);
@@ -105,6 +128,7 @@ router.put('/:id', async function (req, res, next) {
     let article = await getArticle(req.params);
     const body = createWhiteList(req);
     await article.update(body);
+    await clearCache(article.id);
 
     success(
       res,
@@ -126,6 +150,7 @@ router.post('/restore', async function (req, res) {
     const { id } = req.body;
 
     await Article.restore({ where: { id: id } });
+    await clearCache(id);
     success(res, '已恢复成功。');
   } catch (error) {
     failure(res, error);

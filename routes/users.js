@@ -4,7 +4,7 @@ const { User } = require('../models');
 const { success, failure } = require('../utils/responses');
 const { BadRequestError, NotFoundError } = require('../utils/errors');
 const bcrypt = require('bcryptjs');
-
+const { setKey, getKey, delKey } = require('../utils/redis');
 /**
  * 公共方法：查询当前用户
  * @param req
@@ -30,12 +30,26 @@ async function getUser(req, showPassword = false) {
 }
 
 /**
+ * 清除缓存
+ * @param user
+ * @returns {Promise<void>}
+ */
+async function clearCache(user) {
+  await delKey(`user:${user.id}`);
+}
+
+/**
  * 查询当前登录用户详情
  * GET /users/me
  */
 router.get('/me', async function (req, res) {
   try {
-    const user = await getUser(req);
+    let user = await getKey(`user:${req.userId}`);
+    if (!user) {
+      user = await getUser(req);
+      await setKey(`user:${req.userId}`, user);
+    }
+
     success(res, '查询当前用户信息成功。', { user });
   } catch (error) {
     failure(res, error);
@@ -58,6 +72,7 @@ router.put('/info', async function (req, res) {
 
     const user = await getUser(req);
     await user.update(body);
+    await clearCache(user);
     success(res, '更新用户信息成功。', { user });
   } catch (error) {
     failure(res, error);
@@ -96,6 +111,7 @@ router.put('/account', async function (req, res) {
     }
 
     await user.update(body);
+    await clearCache(user);
 
     // 删除密码
     delete user.dataValues.password;

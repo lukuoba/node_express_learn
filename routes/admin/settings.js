@@ -4,7 +4,19 @@ const { Setting, Sequelize } = require('../../models');
 const { Op } = Sequelize;
 const { NotFoundError } = require('../../utils/errors');
 const { success, failure } = require('../../utils/responses');
+const { delKey, flushAll } = require('../../utils/redis');
 
+/**
+ * 清除所有缓存
+ */
+router.get('/flush-all', async function (req, res) {
+  try {
+    await flushAll();
+    success(res, '清除所有缓存成功。');
+  } catch (error) {
+    failure(res, error);
+  }
+});
 /**
  * 公共方法：查询当前系统设置
  */
@@ -37,7 +49,8 @@ router.put('/', async function (req, res, next) {
     const setting = await getSetting();
     const body = filterBody(req);
     await setting.update(body);
-
+    // 删除缓存
+    await delKey('setting');
     success(
       res,
       {
